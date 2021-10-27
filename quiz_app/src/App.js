@@ -7,33 +7,45 @@ const API_URL =
 
 function App() {
   const [questions, setQuestions] = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState(undefined)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [gameEnded, setGameEnded] = useState(false);
 
   useEffect(() => {
     fetch(API_URL)
       .then((res) => res.json())
       .then((data) => {
         setQuestions(data.results);
-        setCurrentQuestion(data.results[0])
       });
   }, []);
 
   const handleAnswer = (answer) => {
-      // check for the answer
+    const newIndex = currentIndex+1
+    setCurrentIndex(newIndex);
 
-      //show another question
+    if (answer === questions[currentIndex].correct_answer) {
+      setScore(score + 1);
+    }
 
-      //change score if correct
+    if(newIndex >= questions.length) {
+      setGameEnded(true);
+    }
+    // check for the answer
+
+    //show another question
+
+    //change score if correct
   };
 
-  return questions.length > 0 ? (
+  return gameEnded ? (
+    <h1 className="text-3xl text-white font-bold">Your score was {score}</h1>
+  ) : questions.length > 0 ? (
     <div className="container">
-      {currentQuestion && (
+      <h1 className="text-5xl font-bold text-center mb-8 ">Music Quiz</h1>
       <Questionaire
-        data={currentQuestion}
+        data={questions[currentIndex]}
         handleAnswer={handleAnswer}
       ></Questionaire>
-      )}
     </div>
   ) : (
     <h1 className="font-bold text-xl">Loading...</h1>
