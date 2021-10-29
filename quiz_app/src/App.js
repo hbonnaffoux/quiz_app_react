@@ -9,43 +9,55 @@ function App() {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [gameEnded, setGameEnded] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
     fetch(API_URL)
       .then((res) => res.json())
       .then((data) => {
         setQuestions(data.results);
+        const questions = data.results.map((question) => ({
+          ...question,
+          answers: [
+            question.correct_answer,
+            ...question.incorrect_answers,
+          ].sort(() => Math.random() - 0.5),
+        }));
+        setQuestions(questions);
       });
   }, []);
 
   const handleAnswer = (answer) => {
-    const newIndex = currentIndex+1
-    setCurrentIndex(newIndex);
-
-    if (answer === questions[currentIndex].correct_answer) {
-      setScore(score + 1);
+    if (!showAnswers) {
+      if (answer === questions[currentIndex].correct_answer) {
+        setScore(score + 1);
+      }
     }
-
-    if(newIndex >= questions.length) {
-      setGameEnded(true);
-    }
-    // check for the answer
-
-    //show another question
-
-    //change score if correct
+    setShowAnswers(true);
   };
 
-  return gameEnded ? (
-    <h1 className="text-3xl text-white font-bold">Your score was {score}</h1>
-  ) : questions.length > 0 ? (
+  const handleNextQuestion = () => {
+    setShowAnswers(false);
+    setCurrentIndex(currentIndex + 1);
+  };
+
+  return questions.length > 0 ? (
     <div className="container">
-      <h1 className="text-5xl font-bold text-center mb-8 ">Music Quiz</h1>
-      <Questionaire
-        data={questions[currentIndex]}
-        handleAnswer={handleAnswer}
-      ></Questionaire>
+      <h1 className="text-5xl font-bold text-center mb-8 text-blue-900 ">
+        Music Quiz
+      </h1>
+      {currentIndex >= questions.length ? (
+        <h1 className="text-3xl text-white font-bold">
+          Game ended! Your score is : {score}
+        </h1>
+      ) : (
+        <Questionaire
+          data={questions[currentIndex]}
+          showAnswers={showAnswers}
+          handleNextQuestion={handleNextQuestion}
+          handleAnswer={handleAnswer}
+        ></Questionaire>
+      )}
     </div>
   ) : (
     <h1 className="font-bold text-xl">Loading...</h1>
